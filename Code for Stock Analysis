@@ -1,0 +1,129 @@
+Sub StockAnalysis()
+   
+    ' Iterate through worksheets
+    For Each ws In Worksheets
+    
+        ' Declare variable for the ticker name
+        Dim tickerName As String
+
+        ' Define variable for total volume of ticker
+        Dim totalVolume As Double
+        totalVolume = 0
+
+        ' Identify the different ticker names
+        Dim summaryTableRow As Integer
+        summaryTableRow = 2
+        
+        ' Set Column Headers
+        ws.Cells(1, 9).Value = "Ticker"
+        ws.Cells(1, 16).Value = "Ticker"
+        ws.Cells(1, 10).Value = "Yearly change"
+        ws.Cells(1, 11).Value = "Percent change"
+        ws.Cells(1, 12).Value = "Total Stock volume"
+        ws.Cells(1, 17).Value = "Value"
+        ws.Cells(2, 15).Value = "Greatest % Increase"
+        ws.Cells(3, 15).Value = "Greatest % Decrease"
+        ws.Cells(4, 15).Value = "Greatest Total Volume"
+
+
+        ' Set the last row
+        lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+
+        ' Loop through all daily records
+        For i = 2 To lastRow
+            ' If previous ticker cells and current ticker cell are different
+            If ws.Cells(i - 1, 1) <> ws.Cells(i, 1) Then
+                openingPrice = ws.Cells(i, 3)
+
+            ' If next ticker cell and current ticker cell are different
+            ElseIf ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+                ' Set the ticker name
+                tickerName = ws.Cells(i, 1).Value
+
+                ' Add to the total volume
+                totalVolume = totalVolume + ws.Cells(i, 7).Value
+
+                ' Set the closing price
+                closingPrice = ws.Cells(i, 6).Value
+
+                ' Calculate the percent change
+                yearlyChange = closingPrice - openingPrice
+
+                ' Calculate the percentage change
+                ' If opening_price = 0 Then
+                percentChange = ((closingPrice - openingPrice) / openingPrice)
+                
+
+                ' Print the ticker in column "I"
+                ws.Range("I" & summaryTableRow).Value = tickerName
+
+                ' Print the yearly change in column "J"
+                ws.Range("J" & summaryTableRow).Value = yearlyChange
+
+                ' Print the percent change in column "K"
+                ws.Range("K" & summaryTableRow).Value = percentChange
+                ws.Columns("K:K").NumberFormat = "0.00%"
+
+                ' Print the ticker Amount in column "L"
+                ws.Range("L" & summaryTableRow).Value = totalVolume
+
+                ' Adding one to the summary table row
+                summaryTableRow = summaryTableRow + 1
+
+                ' Reset the total volume
+                totalVolume = 0
+
+            ' If ticker is the same
+            Else
+                ' Add to the ticker total
+                totalVolume = totalVolume + ws.Cells(i, 7).Value
+            End If
+
+        Next i
+
+        ' Loop through the worksheet one more time
+        Dim greatestIncrease As Double
+        Dim greatestDecrease As Double
+        
+        greatestIncrease = ws.Cells(2, 11)
+        greatestDecrease = ws.Cells(2, 11)
+        greatestVolume = ws.Cells(2, 12)
+        lastRowSummary = ws.Cells(ws.Rows.Count, 10).End(xlUp).Row
+
+        For j = 2 To lastRowSummary
+            ' Apply conditional formatting as per the value
+            If ws.Cells(j, 10) >= 0 Then
+                ws.Cells(j, 10).Interior.ColorIndex = 4
+            ElseIf ws.Cells(j, 10) < 0 Then
+                ws.Cells(j, 10).Interior.ColorIndex = 3
+            End If
+
+            ' Loop through each row to get the greatest increase value
+            If ws.Cells(j, 11) > greatestIncrease Then
+                greatestIncrease = ws.Cells(j, 11)
+                ws.Cells(2, 17) = greatestIncrease
+                ws.Cells(2, 17).NumberFormat = "0.00%"
+                ws.Cells(2, 16) = ws.Cells(j, 9)
+            End If
+
+            ' Loop through each row to get the greatest decrease value
+            If ws.Cells(j, 11) < greatestDecrease Then
+                greatestDecrease = ws.Cells(j, 11)
+                ws.Cells(3, 17) = greatestDecrease
+                ws.Cells(3, 17).NumberFormat = "0.00%"
+                ws.Cells(3, 16) = ws.Cells(j, 9)
+            End If
+
+            ' Loop through each row to get the greatest total volume
+            If ws.Cells(j, 12) > greatestVolume Then
+                greatestVolume = ws.Cells(j, 12)
+                ws.Cells(4, 17) = greatestVolume
+                ws.Cells(4, 16) = ws.Cells(j, 9)
+            End If
+
+        Next j
+
+        ws.Columns("I:Q").AutoFit
+    Next ws
+
+End Sub
